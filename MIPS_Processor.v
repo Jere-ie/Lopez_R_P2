@@ -55,6 +55,7 @@ wire ORForBranch;
 wire ALUSrc_wire;
 wire RegWrite_wire;
 wire Zero_wire;
+wire Shamt;
 wire [2:0] ALUOp_wire;
 wire [3:0] ALUOperation_wire;
 wire [4:0] WriteRegister_wire;
@@ -69,12 +70,18 @@ wire [31:0] ALUResult_wire;
 wire [31:0] PC_4_wire;
 wire [31:0] InmmediateExtendAnded_wire;
 wire [31:0] PCtoBranch_wire;
+wire [31:0] Extended_shamt;
+wire [31:0] ReadData1OrExtended_shamt_wire;
 integer ALUStatus;
 
 
 //******************************************************************/
 //******************************************************************/
 //******************************************************************/
+
+assign Extended_shamt[4:0] = Instruction_wire[10:6];
+assign Extended_shamt[31:5] = 0;
+
 //******************************************************************/
 //******************************************************************/
 Control
@@ -139,7 +146,19 @@ MUX_ForRTypeAndIType
 
 );
 
-
+Multiplexer2to1
+#(
+	.NBits(32)
+)
+MUX_Shamt
+(
+	.Selector(Shamt),
+	.MUX_Data0(ReadData1_wire),
+	.MUX_Data1(Extended_shamt),
+	
+	.MUX_Output(ReadData1OrExtended_shamt_wire)
+	
+);
 
 RegisterFile
 Register_File
@@ -185,7 +204,8 @@ ArithmeticLogicUnitControl
 (
 	.ALUOp(ALUOp_wire),
 	.ALUFunction(Instruction_wire[5:0]),
-	.ALUOperation(ALUOperation_wire)
+	.ALUOperation(ALUOperation_wire),
+	.Shamt(Shamt)
 
 );
 
@@ -195,7 +215,7 @@ ALU
 ArithmeticLogicUnit 
 (
 	.ALUOperation(ALUOperation_wire),
-	.A(ReadData1_wire),
+	.A(ReadData1OrExtended_shamt_wire),
 	.B(ReadData2OrInmmediate_wire),
 	.Zero(Zero_wire),
 	.ALUResult(ALUResult_wire)
