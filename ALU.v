@@ -31,6 +31,7 @@ localparam OR  = 4'b0001;
 localparam NOR = 4'b0010;
 localparam ADD = 4'b0011;
 localparam SUB = 4'b0100;
+localparam LUI = 4'b0101;
    
    always @ (A or B or ALUOperation)
      begin
@@ -45,6 +46,12 @@ localparam SUB = 4'b0100;
 			ALUResult=A | B;
 		  NOR:
 			ALUResult= ~(A|B);
+		  LUI:
+		   begin
+		   ALUResult[15:0] = 16'h0;
+		   ALUResult[31:16] = B[15:0];
+			end
+			
 		default:
 			ALUResult= 0;
 		endcase // case(control)
