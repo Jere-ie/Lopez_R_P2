@@ -33,6 +33,7 @@ localparam ADD = 4'b0011;
 localparam SUB = 4'b0100;
 localparam LUI = 4'b0101;
 localparam SLL = 4'b0110;
+localparam SRL = 4'b0111;
    
    always @ (A or B or ALUOperation)
      begin
@@ -210,6 +211,169 @@ localparam SLL = 4'b0110;
 				begin
 				 ALUResult[31] = B[0];
 				 ALUResult[30:0] = 0;
+				 end
+			default:
+				ALUResult = B;
+			endcase
+			
+			SRL:
+		   case (A)
+				32'h00000000:
+				 ALUResult = B;
+				32'h00000001:
+				 begin
+				 ALUResult[30:0] = B[31:1];
+				 ALUResult[31] = 0;
+				 end
+				32'h00000002:
+				 begin
+				 ALUResult[29:0] = B[31:2];
+				 ALUResult[31:30] = 0;
+				 end
+				32'h00000003:
+				 begin
+				 ALUResult[28:0] = B[31:3];
+				 ALUResult[31:29] = 0;
+				 end
+				32'h00000004:
+				 begin
+				 ALUResult[27:0] = B[31:4];
+				 ALUResult[31:28] = 0;
+				 end
+				32'h00000005:
+				 begin
+				 ALUResult[26:0] = B[31:5];
+				 ALUResult[31:27] = 0;
+				 end
+				32'h00000006:
+				 begin
+				 ALUResult[25:0] = B[31:6];
+				 ALUResult[31:26] = 0;
+				 end
+				32'h00000007:
+				 begin
+				 ALUResult[24:0] = B[31:7];
+				 ALUResult[31:25] = 0;
+				 end
+				32'h00000008:
+				 begin
+				 ALUResult[23:0] = B[31:8];
+				 ALUResult[31:24] = 0;
+				 end
+				32'h00000009:
+				 begin
+				 ALUResult[22:0] = B[31:9];
+				 ALUResult[31:23] = 0;
+				 end
+				32'h0000000a:
+				 begin
+				 ALUResult[21:0] = B[31:10];
+				 ALUResult[31:22] = 0;
+				 end
+				32'h0000000b:
+				 begin
+				 ALUResult[20:0] = B[31:11];
+				 ALUResult[31:21] = 0;
+				 end
+				32'h0000000c:
+				 begin
+				 ALUResult[19:0] = B[31:12];
+				 ALUResult[31:20] = 0;
+				 end
+				32'h0000000d:
+				 begin
+				 ALUResult[18:0] = B[31:13];
+				 ALUResult[31:19] = 0;
+				 end
+				32'h0000000e:
+				 begin
+				 ALUResult[17:0] = B[31:14];
+				 ALUResult[31:18] = 0;
+				 end
+				32'h0000000f:
+				 begin
+				 ALUResult[16:0] = B[31:15];
+				 ALUResult[31:17] = 0;
+				 end
+				32'h00000010:
+				 begin
+				 ALUResult[15:0] = B[31:16];
+				 ALUResult[31:16] = 0;
+				 end
+				32'h00000011:
+				 begin
+				 ALUResult[14:0] = B[31:17];
+				 ALUResult[31:15] = 0;
+				 end
+				32'h00000012:
+				 begin
+				 ALUResult[13:0] = B[31:18];
+				 ALUResult[31:14] = 0;
+				 end
+				32'h00000013:
+				 begin
+				 ALUResult[12:0] = B[31:19];
+				 ALUResult[31:13] = 0;
+				 end
+				32'h00000014:
+				 begin
+				 ALUResult[11:0] = B[31:20];
+				 ALUResult[31:12] = 0;
+				 end
+				32'h00000015:
+				 begin
+				 ALUResult[10:0] = B[31:21];
+				 ALUResult[31:11] = 0;
+				 end
+				32'h00000016:
+				 begin
+				 ALUResult[9:0] = B[31:22];
+				 ALUResult[31:10] = 0;
+				 end
+				32'h00000017:
+				 begin
+				 ALUResult[8:0] = B[31:23];
+				 ALUResult[31:9] = 0;
+				 end
+				32'h00000018:
+				 begin
+				 ALUResult[7:0] = B[31:24];
+				 ALUResult[31:8] = 0;
+				 end
+				32'h00000019:
+				 begin
+				 ALUResult[6:0] = B[31:25];
+				 ALUResult[31:7] = 0;
+				 end
+				32'h0000001a:
+				 begin
+				 ALUResult[5:0] = B[31:26];
+				 ALUResult[31:6] = 0;
+				 end
+				32'h0000001b:
+				 begin
+				 ALUResult[4:0] = B[31:27];
+				 ALUResult[31:5] = 0;
+				 end
+				32'h0000001c:
+				 begin
+				 ALUResult[3:0] = B[31:28];
+				 ALUResult[31:4] = 0;
+				 end
+				32'h0000001d:
+				 begin
+				 ALUResult[2:0] = B[31:29];
+				 ALUResult[31:3] = 0;
+				 end
+				32'h0000001e:
+				 begin
+				 ALUResult[1:0] = B[31:30];
+				 ALUResult[31:2] = 0;
+				 end
+				32'h0000001f:
+				begin
+				 ALUResult[0] = B[31];
+				 ALUResult[31:1] = 0;
 				 end
 			default:
 				ALUResult = B;

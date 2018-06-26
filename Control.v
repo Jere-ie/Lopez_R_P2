@@ -29,6 +29,9 @@ localparam R_Type 	  = 0;
 localparam I_Type_ADDI = 6'h8;
 localparam I_Type_ORI  = 6'h0d;
 localparam I_Type_LUI  = 6'h0f;
+localparam I_Type_BEQ  = 6'h04;
+localparam I_Type_BNE  = 6'h05;
+
 
 reg [10:0] ControlValues;
 
@@ -38,9 +41,12 @@ always@(OP) begin
 		I_Type_ADDI:  ControlValues= 11'b0_101_00_00_100;
 		I_Type_ORI:   ControlValues= 11'b0_101_00_00_101;
 		I_Type_LUI:	  ControlValues= 11'b0_101_00_00_110;
+		I_Type_BEQ:   ControlValues= 11'b0_000_00_01_001;
+		I_Type_BNE:   ControlValues= 11'b0_000_00_10_001;
+		
 		
 		default:
-			ControlValues= 10'b0000000000;
+			ControlValues= 11'b00000000000;
 		endcase
 end	
 	

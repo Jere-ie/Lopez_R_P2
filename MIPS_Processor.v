@@ -55,6 +55,7 @@ wire ORForBranch;
 wire ALUSrc_wire;
 wire RegWrite_wire;
 wire Zero_wire;
+wire NOTZero_wire;
 wire Shamt;
 wire [2:0] ALUOp_wire;
 wire [3:0] ALUOperation_wire;
@@ -68,10 +69,12 @@ wire [31:0] InmmediateExtend_wire;
 wire [31:0] ReadData2OrInmmediate_wire;
 wire [31:0] ALUResult_wire;
 wire [31:0] PC_4_wire;
-wire [31:0] InmmediateExtendAnded_wire;
+//wire [31:0] InmmediateExtendAnded_wire;
+wire [31:0] New_PC_Branch;
 wire [31:0] PCtoBranch_wire;
 wire [31:0] Extended_shamt;
 wire [31:0] ReadData1OrExtended_shamt_wire;
+wire [31:0] Shifted_InmmediateExtend_wire;
 integer ALUStatus;
 
 
@@ -81,6 +84,17 @@ integer ALUStatus;
 
 assign Extended_shamt[4:0] = Instruction_wire[10:6];
 assign Extended_shamt[31:5] = 0;
+
+assign Shifted_InmmediateExtend_wire[31:2] = InmmediateExtend_wire[29:0];
+assign Shifted_InmmediateExtend_wire[1:0] = 0;
+
+assign ZeroANDBranchEQ = Zero_wire & BranchEQ_wire;
+
+assign NOTZero_wire = ~Zero_wire;
+assign NotZeroANDBrachNE = NOTZero_wire & BranchNE_wire;
+
+assign ORForBranch = NotZeroANDBrachNE | ZeroANDBranchEQ;
+
 
 //******************************************************************/
 //******************************************************************/
@@ -101,7 +115,7 @@ ProgramCounter
 (
 	.clk(clk),
 	.reset(reset),
-	.NewPC(PC_4_wire),
+	.NewPC(New_PC_Branch),
 	.PCValue(PC_wire)
 );
 
@@ -126,6 +140,14 @@ PC_Puls_4
 	.Result(PC_4_wire)
 );
 
+Adder32bits
+PC_Plus_4_ShiftLeft
+(
+	.Data0(PC_4_wire),
+	.Data1(Shifted_InmmediateExtend_wire),
+	
+	.Result(PCtoBranch_wire)
+);
 
 //******************************************************************/
 //******************************************************************/
@@ -144,6 +166,19 @@ MUX_ForRTypeAndIType
 	
 	.MUX_Output(WriteRegister_wire)
 
+);
+
+Multiplexer2to1
+#(
+	.NBits(32)
+)
+MUX_NewPC
+(
+	.Selector(ORForBranch),
+	.MUX_Data0(PC_4_wire),
+	.MUX_Data1(PCtoBranch_wire),
+	
+	.MUX_Output(New_PC_Branch)
 );
 
 Multiplexer2to1
