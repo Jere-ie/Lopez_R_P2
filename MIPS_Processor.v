@@ -57,6 +57,7 @@ wire RegWrite_wire;
 wire Zero_wire;
 wire NOTZero_wire;
 wire Shamt;
+wire JumpReg_Selector;
 wire [2:0] ALUOp_wire;
 wire [3:0] ALUOperation_wire;
 wire [4:0] WriteRegister_wire;
@@ -75,6 +76,7 @@ wire [31:0] PCtoBranch_wire;
 wire [31:0] Extended_shamt;
 wire [31:0] ReadData1OrExtended_shamt_wire;
 wire [31:0] Shifted_InmmediateExtend_wire;
+wire [31:0] JumpReg_wire;
 integer ALUStatus;
 
 
@@ -115,7 +117,7 @@ ProgramCounter
 (
 	.clk(clk),
 	.reset(reset),
-	.NewPC(New_PC_Branch),
+	.NewPC(JumpReg_wire),
 	.PCValue(PC_wire)
 );
 
@@ -185,6 +187,19 @@ Multiplexer2to1
 #(
 	.NBits(32)
 )
+MUX_JR
+(
+	.Selector(JumpReg_Selector),
+	.MUX_Data0(New_PC_Branch),
+	.MUX_Data1(ReadData1_wire),
+	
+	.MUX_Output(JumpReg_wire)
+);
+
+Multiplexer2to1
+#(
+	.NBits(32)
+)
 MUX_Shamt
 (
 	.Selector(Shamt),
@@ -240,7 +255,8 @@ ArithmeticLogicUnitControl
 	.ALUOp(ALUOp_wire),
 	.ALUFunction(Instruction_wire[5:0]),
 	.ALUOperation(ALUOperation_wire),
-	.Shamt(Shamt)
+	.Shamt(Shamt),
+	.JumpReg_Selector(JumpReg_Selector)
 
 );
 

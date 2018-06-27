@@ -23,8 +23,10 @@ module ProgramMemory
 	output reg [(DATA_WIDTH-1):0] Instruction
 );
 wire [(DATA_WIDTH-1):0] RealAddress;
+wire [(DATA_WIDTH-1):0] address_correct;
 
-assign RealAddress = {2'b0,Address[(DATA_WIDTH-1):2]};
+assign address_correct = Address - 32'h00400000;
+assign RealAddress = {2'b0,address_correct[(DATA_WIDTH-1):2]};				//Modificar valor inicial de la ROM
 
 	// Declare the ROM variable
 	reg [DATA_WIDTH-1:0] rom[MEMORY_DEPTH-1:0];
