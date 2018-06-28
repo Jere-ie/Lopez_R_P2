@@ -85,6 +85,8 @@ wire [31:0] Shifted_InmmediateExtend_wire;
 wire [31:0] JumpReg_wire;
 wire [31:0] Jump_wire;
 wire [31:0] JumpAddress;
+wire [31:0] DataWriteBackOrPc_4;
+wire [31:0] RdOr31_wire;
 integer ALUStatus;
 
 
@@ -208,11 +210,26 @@ MUX_ForRTypeAndIType
 (
 	.Selector(RegDst_wire),
 	.MUX_Data0(Instruction_wire[20:16]),
-	.MUX_Data1(Instruction_wire[15:11]),
+	.MUX_Data1(RdOr31_wire),
 	
 	.MUX_Output(WriteRegister_wire)
 
 );
+
+Multiplexer2to1
+#(
+	.NBits(32)
+)
+MUX_WriteBack_PCvalue
+(
+	.Selector(Jump),
+	.MUX_Data0(Instruction_wire[15:11]),
+	.MUX_Data1(31),
+	
+	.MUX_Output(RdOr31_wire)
+	
+);
+
 
 Multiplexer2to1
 #(
@@ -268,6 +285,20 @@ MUX_Jump
 	
 );
 
+Multiplexer2to1
+#(
+	.NBits(32)
+)
+MUX_JAL_31RegPick
+(
+	.Selector(Jump),
+	.MUX_Data0(ReadDataorALUResult_wire),
+	.MUX_Data1(PC_4_wire),
+	
+	.MUX_Output(DataWriteBackOrPc_4)
+	
+);
+
 RegisterFile
 Register_File
 (
@@ -277,7 +308,7 @@ Register_File
 	.WriteRegister(WriteRegister_wire),
 	.ReadRegister1(Instruction_wire[25:21]),
 	.ReadRegister2(Instruction_wire[20:16]),
-	.WriteData(ReadDataorALUResult_wire),
+	.WriteData(DataWriteBackOrPc_4),
 	.ReadData1(ReadData1_wire),
 	.ReadData2(ReadData2_wire)
 
