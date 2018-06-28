@@ -61,6 +61,7 @@ wire JumpReg_Selector;
 wire MemtoReg_wire;
 wire MemWrite_wire;
 wire MemRead_wire;
+wire Jump;
 wire [2:0] ALUOp_wire;
 wire [3:0] ALUOperation_wire;
 wire [4:0] WriteRegister_wire;
@@ -82,6 +83,8 @@ wire [31:0] Extended_shamt;
 wire [31:0] ReadData1OrExtended_shamt_wire;
 wire [31:0] Shifted_InmmediateExtend_wire;
 wire [31:0] JumpReg_wire;
+wire [31:0] Jump_wire;
+wire [31:0] JumpAddress;
 integer ALUStatus;
 
 
@@ -102,6 +105,9 @@ assign NotZeroANDBrachNE = NOTZero_wire & BranchNE_wire;
 
 assign ORForBranch = NotZeroANDBrachNE | ZeroANDBranchEQ;
 
+assign Jump_wire[27:2] = Instruction_wire[25:0];
+assign Jump_wire[31:28] = PC_4_wire[31:28];
+assign Jump_wire[1:0] = 0;
 
 //******************************************************************/
 //******************************************************************/
@@ -117,7 +123,8 @@ ControlUnit
 	.RegWrite(RegWrite_wire),
 	.MemWrite(MemWrite_wire),
 	.MemRead(MemRead_wire),
-	.MemtoReg(MemtoReg_wire)
+	.MemtoReg(MemtoReg_wire),
+	.Jump(Jump)
 );
 
 PC_Register
@@ -125,7 +132,7 @@ ProgramCounter
 (
 	.clk(clk),
 	.reset(reset),
-	.NewPC(JumpReg_wire),
+	.NewPC(JumpAddress),
 	.PCValue(PC_wire)
 );
 
@@ -244,6 +251,20 @@ MUX_Shamt
 	.MUX_Data1(Extended_shamt),
 	
 	.MUX_Output(ReadData1OrExtended_shamt_wire)
+	
+);
+
+Multiplexer2to1
+#(
+	.NBits(32)
+)
+MUX_Jump
+(
+	.Selector(Jump),
+	.MUX_Data0(JumpReg_wire),
+	.MUX_Data1(Jump_wire),
+	
+	.MUX_Output(JumpAddress)
 	
 );
 
