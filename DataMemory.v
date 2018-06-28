@@ -25,14 +25,17 @@ module DataMemory
 	// Declare the RAM variable
 	reg [DATA_WIDTH-1:0] ram[MEMORY_DEPTH-1:0];
 	wire [DATA_WIDTH-1:0] ReadDataAux;
+	
+	wire [DATA_WIDTH-1:0] New_Address;
+	assign New_Address = Address - 32'h10010000;
 
 	always @ (posedge clk)
 	begin
 		// Write
 		if (MemWrite)
-			ram[Address] <= WriteData;
+			ram[New_Address] <= WriteData;
 	end
-	assign ReadDataAux = ram[Address];
+	assign ReadDataAux = ram[New_Address];
   	assign ReadData = {DATA_WIDTH{MemRead}}& ReadDataAux;
 
 endmodule

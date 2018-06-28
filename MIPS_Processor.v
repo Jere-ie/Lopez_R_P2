@@ -58,14 +58,19 @@ wire Zero_wire;
 wire NOTZero_wire;
 wire Shamt;
 wire JumpReg_Selector;
+wire MemtoReg_wire;
+wire MemWrite_wire;
+wire MemRead_wire;
 wire [2:0] ALUOp_wire;
 wire [3:0] ALUOperation_wire;
 wire [4:0] WriteRegister_wire;
 wire [31:0] MUX_PC_wire;
+wire [31:0] ReadDataorALUResult_wire;
 wire [31:0] PC_wire;
 wire [31:0] Instruction_wire;
 wire [31:0] ReadData1_wire;
 wire [31:0] ReadData2_wire;
+wire [31:0] ReadDataMem_wire;
 wire [31:0] InmmediateExtend_wire;
 wire [31:0] ReadData2OrInmmediate_wire;
 wire [31:0] ALUResult_wire;
@@ -109,7 +114,10 @@ ControlUnit
 	.BranchEQ(BranchEQ_wire),
 	.ALUOp(ALUOp_wire),
 	.ALUSrc(ALUSrc_wire),
-	.RegWrite(RegWrite_wire)
+	.RegWrite(RegWrite_wire),
+	.MemWrite(MemWrite_wire),
+	.MemRead(MemRead_wire),
+	.MemtoReg(MemtoReg_wire)
 );
 
 PC_Register
@@ -154,8 +162,37 @@ PC_Plus_4_ShiftLeft
 //******************************************************************/
 //******************************************************************/
 //******************************************************************/
+
+DataMemory
+#(
+	.DATA_WIDTH(32),
+	.MEMORY_DEPTH(1024)
+)
+RAM
+(
+	.WriteData(ReadData2_wire),
+	.Address(ALUResult_wire),
+	.clk(clk),
+	.ReadData(ReadDataMem_wire),
+	.MemWrite(MemWrite_wire),
+	.MemRead(MemRead_wire)
+);
+
 //******************************************************************/
 //******************************************************************/
+Multiplexer2to1
+#(
+	.NBits(32)
+)
+MUX_Memory_Read
+(
+	.Selector(MemtoReg_wire),
+	.MUX_Data0(ALUResult_wire),
+	.MUX_Data1(ReadDataMem_wire),
+	
+	.MUX_Output(ReadDataorALUResult_wire)
+);
+
 Multiplexer2to1
 #(
 	.NBits(5)
@@ -219,7 +256,7 @@ Register_File
 	.WriteRegister(WriteRegister_wire),
 	.ReadRegister1(Instruction_wire[25:21]),
 	.ReadRegister2(Instruction_wire[20:16]),
-	.WriteData(ALUResult_wire),
+	.WriteData(ReadDataorALUResult_wire),
 	.ReadData1(ReadData1_wire),
 	.ReadData2(ReadData2_wire)
 
