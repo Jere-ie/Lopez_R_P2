@@ -69,6 +69,7 @@ wire [31:0] MUX_PC_wire;
 wire [31:0] ReadDataorALUResult_wire;
 wire [31:0] PC_wire;
 wire [31:0] Instruction_wire;
+wire [31:0] Instruction_wire_Pipe;
 wire [31:0] ReadData1_wire;
 wire [31:0] ReadData2_wire;
 wire [31:0] ReadDataMem_wire;
@@ -76,6 +77,7 @@ wire [31:0] InmmediateExtend_wire;
 wire [31:0] ReadData2OrInmmediate_wire;
 wire [31:0] ALUResult_wire;
 wire [31:0] PC_4_wire;
+wire [31:0] PC_4_wire_Pipe;
 //wire [31:0] InmmediateExtendAnded_wire;
 wire [31:0] New_PC_Branch;
 wire [31:0] PCtoBranch_wire;
@@ -85,9 +87,12 @@ wire [31:0] Shifted_InmmediateExtend_wire;
 wire [31:0] JumpReg_wire;
 wire [31:0] Jump_wire;
 wire [31:0] JumpAddress;
+wire [31:0] JumpAddress_Pipe;
 wire [31:0] DataWriteBackOrPc_4;
 wire [31:0] RdOr31_wire;
 integer ALUStatus;
+
+reg [95:0] FirstStage;
 
 
 //******************************************************************/
@@ -110,6 +115,19 @@ assign ORForBranch = NotZeroANDBrachNE | ZeroANDBranchEQ;
 assign Jump_wire[27:2] = Instruction_wire[25:0];
 assign Jump_wire[31:28] = PC_4_wire[31:28];
 assign Jump_wire[1:0] = 0;
+
+assign FirstStage[95:64]= Instruction_wire_Pipe;
+assign Instrucion_wire = FirstStage[95:64];
+
+assign FirstStage[63:32] = PC_4_wire_Pipe;
+assign PC_4_wire = FirstStage[63:32];
+
+assign FirstStage[31:0] = JumpAddress_Pipe;
+assign JumpAddress = FirstStage[31:0];
+
+
+
+
 
 //******************************************************************/
 //******************************************************************/
@@ -134,7 +152,7 @@ ProgramCounter
 (
 	.clk(clk),
 	.reset(reset),
-	.NewPC(JumpAddress),
+	.NewPC(JumpAddress_Pipe),
 	.PCValue(PC_wire)
 );
 
@@ -147,7 +165,7 @@ ProgramMemory
 ROMProgramMemory
 (
 	.Address(PC_wire),
-	.Instruction(Instruction_wire)
+	.Instruction(PC_4_wire_Pipe)
 );
 
 Adder32bits
@@ -156,7 +174,7 @@ PC_Puls_4
 	.Data0(PC_wire),
 	.Data1(4),
 	
-	.Result(PC_4_wire)
+	.Result(PC_4_wire_Pipe)
 );
 
 Adder32bits
@@ -175,7 +193,7 @@ PC_Plus_4_ShiftLeft
 DataMemory
 #(
 	.DATA_WIDTH(32),
-	.MEMORY_DEPTH(1024)
+	.MEMORY_DEPTH(512)
 )
 RAM
 (
