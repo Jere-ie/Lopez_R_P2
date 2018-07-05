@@ -47,22 +47,32 @@ assign  PortOut = 0;
 //******************************************************************/
 // Data types to connect modules
 wire BranchNE_wire;
+wire BranchNE_wire_Pipe;
 wire BranchEQ_wire;
+wire BranchEQ_wire_Pipe;
 wire RegDst_wire;
+wire RegDst_wire_Pipe;
 wire NotZeroANDBrachNE;
 wire ZeroANDBrachEQ;
 wire ORForBranch;
 wire ALUSrc_wire;
+wire ALUSrc_wire_Pipe;
 wire RegWrite_wire;
+wire RegWrite_wire_Pipe;
 wire Zero_wire;
 wire NOTZero_wire;
 wire Shamt;
 wire JumpReg_Selector;
 wire MemtoReg_wire;
+wire MemtoReg_wire_Pipe;
 wire MemWrite_wire;
+wire MemWrite_wire_Pipe;
 wire MemRead_wire;
+wire MemRead_wire_Pipe;
 wire Jump;
+wire Jump_Pipe;
 wire [2:0] ALUOp_wire;
+wire [2:0] ALUOp_wire_Pipe;
 wire [3:0] ALUOperation_wire;
 wire [4:0] WriteRegister_wire;
 wire [31:0] MUX_PC_wire;
@@ -70,29 +80,34 @@ wire [31:0] ReadDataorALUResult_wire;
 wire [31:0] PC_wire;
 wire [31:0] Instruction_wire;
 wire [31:0] Instruction_wire_Pipe;
+wire [31:0] Instruction_wire_Pipe2;
 wire [31:0] ReadData1_wire;
+wire [31:0] ReadData1_wire_Pipe;
 wire [31:0] ReadData2_wire;
+wire [31:0] ReadData2_wire_Pipe;
 wire [31:0] ReadDataMem_wire;
 wire [31:0] InmmediateExtend_wire;
+wire [31:0] InmmediateExtend_wire_Pipe;
 wire [31:0] ReadData2OrInmmediate_wire;
 wire [31:0] ALUResult_wire;
 wire [31:0] PC_4_wire;
 wire [31:0] PC_4_wire_Pipe;
+wire [31:0] PC_4_wire_Pipe2;
 //wire [31:0] InmmediateExtendAnded_wire;
 wire [31:0] New_PC_Branch;
 wire [31:0] PCtoBranch_wire;
 wire [31:0] Extended_shamt;
+wire [31:0] Extended_shamt_Pipe;
 wire [31:0] ReadData1OrExtended_shamt_wire;
 wire [31:0] Shifted_InmmediateExtend_wire;
 wire [31:0] JumpReg_wire;
 wire [31:0] Jump_wire;
 wire [31:0] JumpAddress;
-wire [31:0] JumpAddress_Pipe;
 wire [31:0] DataWriteBackOrPc_4;
 wire [31:0] RdOr31_wire;
 integer ALUStatus;
 
-reg [95:0] FirstStage;
+reg [64:0] FirstStage;
 
 
 //******************************************************************/
@@ -112,21 +127,46 @@ assign NotZeroANDBrachNE = NOTZero_wire & BranchNE_wire;
 
 assign ORForBranch = NotZeroANDBrachNE | ZeroANDBranchEQ;
 
-assign Jump_wire[27:2] = Instruction_wire[25:0];
+assign Jump_wire[27:2] = Instruction_wire_Pipe2[25:0];
 assign Jump_wire[31:28] = PC_4_wire[31:28];
 assign Jump_wire[1:0] = 0;
 
-assign FirstStage[95:64]= Instruction_wire_Pipe;
-assign Instrucion_wire = FirstStage[95:64];
+//FirstStage[64:32] <= Instruction_wire_Pipe;
+//assign Instruction_wire = FirstStage[64:32];
 
-assign FirstStage[63:32] = PC_4_wire_Pipe;
-assign PC_4_wire = FirstStage[63:32];
-
-assign FirstStage[31:0] = JumpAddress_Pipe;
-assign JumpAddress = FirstStage[31:0];
+//FirstStage[31:0] <= PC_4_wire_Pipe;
+//assign PC_4_wire = FirstStage[31:0];
 
 
+Register_Pipeline
+#(
+	.N(64)
+)
+Pipeline_FirstStage
+(
+	.clk(clk),
+	.reset(reset),
+	.enable(1),
+	.DataInput({Instruction_wire_Pipe,PC_4_wire_Pipe}),
+	
+	.DataOutput({Instruction_wire,PC_4_wire})
+);
 
+Register_Pipeline
+#(
+	.N(189)
+)
+Pipeline_SecondStage
+(
+	.clk(clk),
+	.reset(reset),
+	.enable(1),
+	.DataInput({Instruction_wire,BranchNE_wire_Pipe,BranchEQ_wire_Pipe,MemRead_wire_Pipe,MemtoReg_wire_Pipe,
+	MemWrite_wire_Pipe,ALUSrc_wire_Pipe,RegWrite_wire_Pipe,ReadData1_wire_Pipe,ReadData2_wire_Pipe,InmmediateExtend_wire_Pipe,ALUOp_wire_Pipe,Jump_Pipe,RegDst_wire_Pipe,Extended_shamt}),
+	
+	.DataOutput({Instruction_wire_Pipe2,BranchNE_wire,BranchEQ_wire,MemRead_wire,MemtoReg_wire,
+	MemWrite_wire,ALUSrc_wire,RegWrite_wire,ReadData1_wire,ReadData2_wire,InmmediateExtend_wire,ALUOp_wire,Jump,RegDst_wire,Extended_shamt_Pipe})
+);
 
 
 //******************************************************************/
@@ -135,16 +175,16 @@ Control
 ControlUnit
 (
 	.OP(Instruction_wire[31:26]),
-	.RegDst(RegDst_wire),
-	.BranchNE(BranchNE_wire),
-	.BranchEQ(BranchEQ_wire),
-	.ALUOp(ALUOp_wire),
-	.ALUSrc(ALUSrc_wire),
-	.RegWrite(RegWrite_wire),
-	.MemWrite(MemWrite_wire),
-	.MemRead(MemRead_wire),
-	.MemtoReg(MemtoReg_wire),
-	.Jump(Jump)
+	.RegDst(RegDst_wire_Pipe),
+	.BranchNE(BranchNE_wire_Pipe),
+	.BranchEQ(BranchEQ_wire_Pipe),
+	.ALUOp(ALUOp_wire_Pipe),
+	.ALUSrc(ALUSrc_wire_Pipe),
+	.RegWrite(RegWrite_wire_Pipe),
+	.MemWrite(MemWrite_wire_Pipe),
+	.MemRead(MemRead_wire_Pipe),
+	.MemtoReg(MemtoReg_wire_Pipe),
+	.Jump(Jump_Pipe)
 );
 
 PC_Register
@@ -152,7 +192,7 @@ ProgramCounter
 (
 	.clk(clk),
 	.reset(reset),
-	.NewPC(JumpAddress_Pipe),
+	.NewPC(JumpAddress),
 	.PCValue(PC_wire)
 );
 
@@ -165,7 +205,7 @@ ProgramMemory
 ROMProgramMemory
 (
 	.Address(PC_wire),
-	.Instruction(PC_4_wire_Pipe)
+	.Instruction(Instruction_wire_Pipe)
 );
 
 Adder32bits
@@ -227,7 +267,7 @@ Multiplexer2to1
 MUX_ForRTypeAndIType
 (
 	.Selector(RegDst_wire),
-	.MUX_Data0(Instruction_wire[20:16]),
+	.MUX_Data0(Instruction_wire_Pipe2[20:16]),
 	.MUX_Data1(RdOr31_wire),
 	
 	.MUX_Output(WriteRegister_wire)
@@ -241,7 +281,7 @@ Multiplexer2to1
 MUX_WriteBack_PCvalue
 (
 	.Selector(Jump),
-	.MUX_Data0(Instruction_wire[15:11]),
+	.MUX_Data0(Instruction_wire_Pipe2[15:11]),
 	.MUX_Data1(31),
 	
 	.MUX_Output(RdOr31_wire)
@@ -283,7 +323,7 @@ MUX_Shamt
 (
 	.Selector(Shamt),
 	.MUX_Data0(ReadData1_wire),
-	.MUX_Data1(Extended_shamt),
+	.MUX_Data1(Extended_shamt_Pipe),
 	
 	.MUX_Output(ReadData1OrExtended_shamt_wire)
 	
@@ -327,8 +367,8 @@ Register_File
 	.ReadRegister1(Instruction_wire[25:21]),
 	.ReadRegister2(Instruction_wire[20:16]),
 	.WriteData(DataWriteBackOrPc_4),
-	.ReadData1(ReadData1_wire),
-	.ReadData2(ReadData2_wire)
+	.ReadData1(ReadData1_wire_Pipe),
+	.ReadData2(ReadData2_wire_Pipe)
 
 );
 
@@ -336,7 +376,7 @@ SignExtend
 SignExtendForConstants
 (   
 	.DataInput(Instruction_wire[15:0]),
-   .SignExtendOutput(InmmediateExtend_wire)
+   .SignExtendOutput(InmmediateExtend_wire_Pipe)
 );
 
 
@@ -360,7 +400,7 @@ ALUControl
 ArithmeticLogicUnitControl
 (
 	.ALUOp(ALUOp_wire),
-	.ALUFunction(Instruction_wire[5:0]),
+	.ALUFunction(Instruction_wire_Pipe2[5:0]),
 	.ALUOperation(ALUOperation_wire),
 	.Shamt(Shamt),
 	.JumpReg_Selector(JumpReg_Selector)
