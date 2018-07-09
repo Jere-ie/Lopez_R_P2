@@ -62,6 +62,7 @@ wire ALUSrc_wire_Pipe;
 wire RegWrite_wire;
 wire RegWrite_wire_Pipe;
 wire RegWrite_wire_Pipe2;
+wire RegWrite_wire_Pipe3;
 wire Zero_wire;
 wire Zero_wire_Pipe;
 wire NOTZero_wire;
@@ -71,6 +72,7 @@ wire JumpReg_Selector_Pipe;
 wire MemtoReg_wire;
 wire MemtoReg_wire_Pipe;
 wire MemtoReg_wire_Pipe2;
+wire MemtoReg_wire_Pipe3;
 wire MemWrite_wire;
 wire MemWrite_wire_Pipe;
 wire MemWrite_wire_Pipe2;
@@ -80,11 +82,13 @@ wire MemRead_wire_Pipe2;
 wire Jump;
 wire Jump_Pipe;
 wire Jump_Pipe2;
+wire Jump_Pipe3;
 wire [2:0] ALUOp_wire;
 wire [2:0] ALUOp_wire_Pipe;
 wire [3:0] ALUOperation_wire;
 wire [4:0] WriteRegister_wire;
 wire [4:0] WriteRegister_wire_Pipe;
+wire [4:0] WriteRegister_wire_Pipe2;
 wire [31:0] MUX_PC_wire;
 wire [31:0] ReadDataorALUResult_wire;
 wire [31:0] PC_wire;
@@ -98,16 +102,19 @@ wire [31:0] ReadData2_wire;
 wire [31:0] ReadData2_wire_Pipe;
 wire [31:0] ReadData2_wire_Pipe2;
 wire [31:0] ReadDataMem_wire;
+wire [31:0] ReadDataMem_wire_Pipe;
 wire [31:0] InmmediateExtend_wire;
 wire [31:0] InmmediateExtend_wire_Pipe;
 wire [31:0] ReadData2OrInmmediate_wire;
 wire [31:0] ALUResult_wire;
 wire [31:0] ALUResult_wire_Pipe;
+wire [31:0] ALUResult_wire_Pipe2;
 wire [31:0] PC_4_wire;
 wire [31:0] PC_4_wire_Pipe;
 wire [31:0] PC_4_wire_Pipe2;
 wire [31:0] PC_4_wire_ThirdStage;
 wire [31:0] PC_4_wire_ThirdStage_Pipe;
+wire [31:0] PC_4_wire_ThirdStage_Pipe2;
 //wire [31:0] InmmediateExtendAnded_wire;
 wire [31:0] New_PC_Branch;
 wire [31:0] PCtoBranch_wire;
@@ -192,11 +199,23 @@ Pipeline_ThirdStage
 	.DataInput({BranchEQ_wire_Pipe2,BranchNE_wire_Pipe2,WriteRegister_wire_Pipe,PC_4_wire_ThirdStage,PCtoBranch_wire_Pipe,MemRead_wire_Pipe2,MemtoReg_wire_Pipe2,
 	MemWrite_wire_Pipe2,Zero_wire_Pipe,JumpReg_Selector_Pipe,ALUResult_wire_Pipe,ReadData2_wire,Instruction_wire_Pipe2,Jump,RegWrite_wire}),
 	
-	.DataOutput({BranchEQ_wire,BranchNE_wire,WriteRegister_wire,PC_4_wire_ThirdStage_Pipe,PCtoBranch_wire,MemRead_wire,MemtoReg_wire,
-	MemWrite_wire,Zero_wire,JumpReg_Selector,ALUResult_wire,ReadData2_wire_Pipe2,Instruction_wire_Pipe3,Jump_Pipe2,RegWrite_wire_Pipe2})
+	.DataOutput({BranchEQ_wire,BranchNE_wire,WriteRegister_wire_Pipe2,PC_4_wire_ThirdStage_Pipe,PCtoBranch_wire,MemRead_wire,MemtoReg_wire_Pipe3,
+	MemWrite_wire,Zero_wire,JumpReg_Selector,ALUResult_wire_Pipe2,ReadData2_wire_Pipe2,Instruction_wire_Pipe3,Jump_Pipe2,RegWrite_wire_Pipe2})
 );
 
-
+Register_Pipeline
+#(
+	.N(131)
+)
+Pipeline_FourthStage
+(
+	.clk(clk),
+	.reset(reset),
+	.enable(1),
+	.DataInput({MemtoReg_wire_Pipe3,ReadDataMem_wire_Pipe,ALUResult_wire_Pipe2,RegWrite_wire_Pipe2,PC_4_wire_ThirdStage_Pipe,WriteRegister_wire_Pipe2,Jump_Pipe2}),
+	
+	.DataOutput({MemtoReg_wire,ReadDataMem_wire,ALUResult_wire,RegWrite_wire_Pipe3,PC_4_wire_ThirdStage_Pipe2,WriteRegister_wire,Jump_Pipe3})
+);
 
 //******************************************************************/
 //******************************************************************/
@@ -267,9 +286,9 @@ DataMemory
 RAM
 (
 	.WriteData(ReadData2_wire_Pipe2),
-	.Address(ALUResult_wire),
+	.Address(ALUResult_wire_Pipe2),
 	.clk(clk),
-	.ReadData(ReadDataMem_wire),
+	.ReadData(ReadDataMem_wire_Pipe),
 	.MemWrite(MemWrite_wire),
 	.MemRead(MemRead_wire)
 );
@@ -378,9 +397,9 @@ Multiplexer2to1
 )
 MUX_JAL_31RegPick
 (
-	.Selector(Jump_Pipe2),
+	.Selector(Jump_Pipe3),
 	.MUX_Data0(ReadDataorALUResult_wire),
-	.MUX_Data1(PC_4_wire_ThirdStage_Pipe),
+	.MUX_Data1(PC_4_wire_ThirdStage_Pipe2),
 	
 	.MUX_Output(DataWriteBackOrPc_4)
 	
@@ -391,7 +410,7 @@ Register_File
 (
 	.clk(clk),
 	.reset(reset),
-	.RegWrite(RegWrite_wire_Pipe2),
+	.RegWrite(RegWrite_wire_Pipe3),
 	.WriteRegister(WriteRegister_wire),
 	.ReadRegister1(Instruction_wire[25:21]),
 	.ReadRegister2(Instruction_wire[20:16]),
