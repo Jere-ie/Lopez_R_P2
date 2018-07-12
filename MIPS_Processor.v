@@ -83,6 +83,8 @@ wire Jump;
 wire Jump_Pipe;
 wire Jump_Pipe2;
 wire Jump_Pipe3;
+wire [1:0]ForwardA_wire;
+wire [1:0]ForwardB_wire;
 wire [2:0] ALUOp_wire;
 wire [2:0] ALUOp_wire_Pipe;
 wire [3:0] ALUOperation_wire;
@@ -128,6 +130,8 @@ wire [31:0] Jump_wire;
 wire [31:0] JumpAddress;
 wire [31:0] DataWriteBackOrPc_4;
 wire [31:0] RdOr31_wire;
+wire [31:0] ForwardingALUInputA_wire;
+wire [31:0] ForwardingALUInputB_wire;
 integer ALUStatus;
 
 reg [64:0] FirstStage;
@@ -370,7 +374,7 @@ Multiplexer2to1
 MUX_Shamt
 (
 	.Selector(Shamt),
-	.MUX_Data0(ReadData1_wire),
+	.MUX_Data0(ForwardingALUInputA_wire),
 	.MUX_Data1(Extended_shamt_Pipe),
 	
 	.MUX_Output(ReadData1OrExtended_shamt_wire)
@@ -436,7 +440,7 @@ Multiplexer2to1
 MUX_ForReadDataAndInmediate
 (
 	.Selector(ALUSrc_wire),
-	.MUX_Data0(ReadData2_wire),
+	.MUX_Data0(ForwardingALUInputB_wire),
 	.MUX_Data1(InmmediateExtend_wire),
 	
 	.MUX_Output(ReadData2OrInmmediate_wire)
@@ -465,6 +469,48 @@ ArithmeticLogicUnit
 	.B(ReadData2OrInmmediate_wire),
 	.Zero(Zero_wire_Pipe),
 	.ALUResult(ALUResult_wire_Pipe)
+);
+
+Forwarding
+ForwardingUnit
+(
+	.Rs_direction(Instruction_wire_Pipe2[25:21]),
+	.Rt_direction(Instruction_wire_Pipe2[20:16]),
+	.RsOrRt_4thStage(WriteRegister_wire_Pipe2),
+	.RsOrRt_5thStage(WriteRegister_wire),
+
+	.Forward_A(ForwardA_wire),
+	.Forward_B(ForwardB_wire)
+);
+
+Multiplexer3to1
+#(
+	.NBits(32)
+)
+MUX3to1_A
+(
+	.Selector(ForwardA_wire),
+	.MUX_Data0(ReadData1_wire),
+	.MUX_Data1(ReadDataorALUResult_wire),
+	.MUX_Data2(ALUResult_wire_Pipe2),
+	
+	.MUX_Output(ForwardingALUInputA_wire)
+
+);
+
+Multiplexer3to1
+#(
+	.NBits(32)
+)
+MUX3to1_B
+(
+	.Selector(ForwardB_wire),
+	.MUX_Data0(ReadData2_wire),
+	.MUX_Data1(ReadDataorALUResult_wire),
+	.MUX_Data2(ALUResult_wire_Pipe2),
+	
+	.MUX_Output(ForwardingALUInputB_wire)
+
 );
 
 assign ALUResultOut = ALUResult_wire;

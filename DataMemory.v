@@ -28,6 +28,11 @@ module DataMemory
 	
 	wire [DATA_WIDTH-1:0] New_Address;
 	assign New_Address = Address - 32'h10010000;
+	
+	/*initial
+	begin
+		$readmemh("data.dat", rom);
+	end*/
 
 	always @ (posedge clk)
 	begin
